@@ -48,4 +48,8 @@ public class CustomerAddressService {
         List<CustomerAddress> customerAddressList = customerAddressRepository.findAll(pageable).stream().toList();
         return ResponseEntity.ok(customerAddressList);
     }
+
+    public ResponseEntity findAll(){
+        return ResponseEntity.ok(customerAddressRepository.findAll());
+    }
 }

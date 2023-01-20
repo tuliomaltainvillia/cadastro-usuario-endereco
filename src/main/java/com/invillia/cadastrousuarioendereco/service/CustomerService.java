@@ -104,7 +104,7 @@ public class CustomerService {
     public ResponseEntity vincularEndereco(UUID idCustomer, UUID idAddress) {
         try {
             Address addressExist = (Address) addressService.buscarUnicoEndereco(idAddress).getBody();
-            List<CustomerAddress> customerAddressList = (List<CustomerAddress>) customerAddressService.buscarTodos().getBody();
+            List<CustomerAddress> customerAddressList = (List<CustomerAddress>) customerAddressService.findAll().getBody();
             List<CustomerAddress> customers = new ArrayList<>();
             for (int i = 0; i < customerAddressList.size(); i++) {
                 if (customerAddressList.get(i).getIdCustomer().equals(idCustomer)) {
@@ -127,7 +127,7 @@ public class CustomerService {
 
     public ResponseEntity tornarPrincipal(UUID idCustomer, UUID idAddress) {
         try {
-            List<CustomerAddress> customerAddressList = (List<CustomerAddress>) customerAddressService.buscarTodos().getBody();
+            List<CustomerAddress> customerAddressList = (List<CustomerAddress>) customerAddressService.findAll().getBody();
             if (customerAddressList.size() > 0) {
                 for (int i = 0; i < customerAddressList.size(); i++) {
                     if (customerAddressList.get(i).getIdCustomer().equals(idCustomer)) {
