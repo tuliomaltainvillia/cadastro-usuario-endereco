@@ -2,6 +2,10 @@ package com.invillia.cadastrousuarioendereco.service;
 
 import com.invillia.cadastrousuarioendereco.entity.Address;
 import com.invillia.cadastrousuarioendereco.repository.AddressRepository;
+import com.invillia.cadastrousuarioendereco.utils.ValidarAddress;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -18,36 +22,66 @@ public class AddressService {
     }
 
     public ResponseEntity salvarEndereco(Address address) {
-        if (address.getBairro().isEmpty() || address.getCep().isEmpty() || address.getCidade().isEmpty() ||
-        address.getEstado().isEmpty() || address.getNumero().isEmpty() || address.getRua().isEmpty()) {
-            return ResponseEntity.status(400).build();
+        try {
+            ValidarAddress validarAddress = new ValidarAddress(address);
+            validarAddress.validar();
+            UUID uuid = UUID.randomUUID();
+            address.setIdAddres(uuid);
+            return ResponseEntity.ok(addressRepository.save(address));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
         }
-        UUID uuid = UUID.randomUUID();
-        address.setIdAddres(uuid);
-        return ResponseEntity.ok(addressRepository.save(address));
     }
 
-    public List<Address> buscarEndereco() {
-        return addressRepository.findAll();
+    public ResponseEntity buscarEndereco(Integer ultimoIndice,Integer totalPorPagina, String filtro) {
+        try {
+            Pageable pageable;
+            if(filtro.isEmpty()){
+                pageable = PageRequest.of(ultimoIndice, totalPorPagina);
+            } else {
+                pageable = PageRequest.of(ultimoIndice, totalPorPagina, Sort.by(filtro));
+            }
+            List<Address> addressList = addressRepository.findAll(pageable).stream().toList();
+            if (addressList.size() > 0) {
+                return ResponseEntity.ok(addressList);
+            } else {
+                return ResponseEntity.noContent().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
-    public Address buscarUnicoEndereco(UUID uuid) {
-        return addressRepository.findById(uuid).orElse(null);
+    public ResponseEntity buscarUnicoEndereco(UUID uuid) {
+        try {
+            Address address = addressRepository.findById(uuid).orElse(null);
+            if (null == address) {
+                return ResponseEntity.noContent().build();
+            } else {
+                return ResponseEntity.ok(address);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
-    public Address editarAddress(UUID uuid, Address address) {
-        address.setIdAddres(uuid);
-        return addressRepository.save(address);
+    public ResponseEntity editarAddress(UUID uuid, Address address) {
+        try {
+            Address address1 = addressRepository.save(address);
+            return ResponseEntity.ok(address1);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+
     }
 
-    public Boolean deletarAddress(UUID uuid) {
-        Boolean deletouAddress = false;
+    public ResponseEntity deletarAddress(UUID uuid) {
         addressRepository.deleteById(uuid);
         Address address = addressRepository.findById(uuid).orElse(null);
         if (null == address) {
-            deletouAddress = true;
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(304).build();
         }
-
-        return deletouAddress;
     }
 }

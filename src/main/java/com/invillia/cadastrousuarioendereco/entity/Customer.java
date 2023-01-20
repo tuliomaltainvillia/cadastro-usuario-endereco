@@ -23,6 +23,7 @@ public class Customer {
     @Column(name = "TELEFONE")
     private String telefone;
 
+
     public UUID getIdCustomer() {
         return idCustomer;
     }

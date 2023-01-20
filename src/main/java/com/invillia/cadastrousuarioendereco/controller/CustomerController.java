@@ -22,22 +22,25 @@ public class CustomerController {
     }
 
     @GetMapping("/buscar")
-    public List<Customer> buscar() {
-        return customerService.buscar();
+    public ResponseEntity buscar(
+            @RequestHeader(value = "ultimoIndice") Integer ultimoIndice,
+            @RequestHeader(value = "totalPorPagina") Integer totalPorPagina,
+            @RequestHeader(value = "filtro") String filtro) {
+        return customerService.buscar(ultimoIndice, totalPorPagina, filtro);
     }
 
     @GetMapping("/buscarunico/{id}")
-    public Customer buscarUnico(@PathVariable("id") UUID uuid) {
+    public ResponseEntity buscarUnico(@PathVariable("id") UUID uuid) {
         return customerService.buscarUnico(uuid);
     }
 
     @PutMapping("/editar/{id}")
-    public Customer editarCustomer(@PathVariable("id") UUID uuid, @RequestBody Customer customer) {
+    public ResponseEntity editarCustomer(@PathVariable("id") UUID uuid, @RequestBody Customer customer) {
         return customerService.editarCustomer(uuid, customer);
     }
 
     @DeleteMapping("/deletar/{id}")
-    public Boolean deletarCustomer(@PathVariable("id") UUID uuid) {
+    public ResponseEntity deletarCustomer(@PathVariable("id") UUID uuid) {
         return customerService.deletarCustomer(uuid);
     }
 

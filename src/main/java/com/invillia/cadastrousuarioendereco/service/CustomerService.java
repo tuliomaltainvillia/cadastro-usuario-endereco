@@ -4,6 +4,10 @@ import com.invillia.cadastrousuarioendereco.entity.Address;
 import com.invillia.cadastrousuarioendereco.entity.Customer;
 import com.invillia.cadastrousuarioendereco.entity.CustomerAddress;
 import com.invillia.cadastrousuarioendereco.repository.CustomerRepository;
+import com.invillia.cadastrousuarioendereco.utils.ValidarCustomer;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +31,9 @@ public class CustomerService {
 
     public ResponseEntity salvar(Customer customer, UUID idAddress) {
         try {
-            Address addressExist = addressService.buscarUnicoEndereco(idAddress);
+            ValidarCustomer validarCustomer = new ValidarCustomer(customer);
+            validarCustomer.validar();
+            Address addressExist = (Address) addressService.buscarUnicoEndereco(idAddress).getBody();
             if (null != addressExist) {
                 UUID uuid = UUID.randomUUID();
                 customer.setIdCustomer(uuid);
@@ -37,39 +43,67 @@ public class CustomerService {
             } else {
                 return ResponseEntity.status(406).build();
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
 
     }
 
-    public List<Customer> buscar() {
-        return customerRepository.findAll();
+    public ResponseEntity buscar(Integer ultimoIndice, Integer totalPorPagina, String filtro) {
+        try {
+            Pageable pageable;
+            if(filtro.isEmpty()){
+                pageable = PageRequest.of(ultimoIndice, totalPorPagina);
+            } else {
+                pageable = PageRequest.of(ultimoIndice, totalPorPagina, Sort.by(filtro));
+            }
+            List<Customer> customerList = customerRepository.findAll(pageable).stream().toList();
+            if (customerList.size() > 0) {
+                return ResponseEntity.ok(customerList);
+            } else {
+                return ResponseEntity.noContent().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
-    public Customer buscarUnico(UUID uuid) {
-        return customerRepository.findById(uuid).orElse(null);
+    public ResponseEntity buscarUnico(UUID uuid) {
+        try {
+            Customer customer = customerRepository.findById(uuid).orElse(null);
+            if (null == customer) {
+                return ResponseEntity.ok(customer);
+            } else {
+                return ResponseEntity.noContent().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
-    public Customer editarCustomer(UUID uuid, Customer customer) {
-        customer.setIdCustomer(uuid);
-        return customerRepository.save(customer);
+    public ResponseEntity editarCustomer(UUID uuid, Customer customer) {
+        try {
+            customer.setIdCustomer(uuid);
+            Customer customer1 = customerRepository.save(customer);
+            return ResponseEntity.ok(customer1);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 
-    public Boolean deletarCustomer(UUID uuid) {
-        Boolean deletou = false;
+    public ResponseEntity deletarCustomer(UUID uuid) {
         customerRepository.deleteById(uuid);
         Customer customer = customerRepository.findById(uuid).orElse(null);
         if (null == customer) {
-            deletou = true;
+            return ResponseEntity.ok().build();
+        } else {
+            return ResponseEntity.status(304).build();
         }
-
-        return deletou;
     }
 
     public ResponseEntity vincularEndereco(UUID idCustomer, UUID idAddress) {
         try {
-            Address addressExist = addressService.buscarUnicoEndereco(idAddress);
+            Address addressExist = (Address) addressService.buscarUnicoEndereco(idAddress).getBody();
             List<CustomerAddress> customerAddressList = (List<CustomerAddress>) customerAddressService.buscarTodos().getBody();
             List<CustomerAddress> customers = new ArrayList<>();
             for (int i = 0; i < customerAddressList.size(); i++) {

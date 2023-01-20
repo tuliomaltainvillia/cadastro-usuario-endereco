@@ -23,22 +23,26 @@ public class AddressControler {
     }
 
     @GetMapping("/buscarenderecos")
-    public List<Address> buscarEnderecos() {
-        return addressService.buscarEndereco();
+    public ResponseEntity buscarEnderecos(
+            @RequestHeader(value = "ultimoIndice") Integer ultimoIndice,
+            @RequestHeader(value = "totalPorPagina") Integer totalPorPagina,
+            @RequestHeader(value = "filtro") String filtro
+    ) {
+        return addressService.buscarEndereco(ultimoIndice,totalPorPagina,filtro);
     }
 
     @GetMapping("/buscarunicoendereco/{id}")
-    public Address buscarUnicoEndereco(@PathVariable("id")UUID uuid) {
+    public ResponseEntity buscarUnicoEndereco(@PathVariable("id")UUID uuid) {
         return addressService.buscarUnicoEndereco(uuid);
     }
 
     @PutMapping("/editarendereco/{id}")
-    public Address editarAddress(@PathVariable("id") UUID uuid, @RequestBody Address address) {
+    public ResponseEntity editarAddress(@PathVariable("id") UUID uuid, @RequestBody Address address) {
         return addressService.editarAddress(uuid, address);
     }
 
     @DeleteMapping("/deletarendereco/{id}")
-    public Boolean deletarAddress(@PathVariable("id") UUID uuid) {
+    public ResponseEntity deletarAddress(@PathVariable("id") UUID uuid) {
         return addressService.deletarAddress(uuid);
     }
 }

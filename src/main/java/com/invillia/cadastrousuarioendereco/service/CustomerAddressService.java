@@ -2,6 +2,9 @@ package com.invillia.cadastrousuarioendereco.service;
 
 import com.invillia.cadastrousuarioendereco.entity.CustomerAddress;
 import com.invillia.cadastrousuarioendereco.repository.CustomerAddressRepository;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -34,8 +37,15 @@ public class CustomerAddressService {
         return customerAddressRepository.saveAll(customerAddressList);
     }
 
-    public ResponseEntity buscarTodos() {
-        List<CustomerAddress> customerAddressList = customerAddressRepository.findAll();
+    public ResponseEntity buscarTodos(Integer ultimoIndice, Integer totalPorPagina, String filtro) {
+
+        Pageable pageable;
+        if(filtro.isEmpty()){
+            pageable = PageRequest.of(ultimoIndice, totalPorPagina);
+        } else {
+            pageable = PageRequest.of(ultimoIndice, totalPorPagina, Sort.by(filtro));
+        }
+        List<CustomerAddress> customerAddressList = customerAddressRepository.findAll(pageable).stream().toList();
         return ResponseEntity.ok(customerAddressList);
     }
 }
