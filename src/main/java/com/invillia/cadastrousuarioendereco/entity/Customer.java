@@ -1,6 +1,7 @@
 package com.invillia.cadastrousuarioendereco.entity;
 
 import jakarta.persistence.*;
+import org.springframework.data.annotation.Version;
 
 import java.util.UUID;
 
@@ -23,6 +24,12 @@ public class Customer {
     @Column(name = "TELEFONE")
     private String telefone;
 
+    @Version
+    private Integer version;
+
+    public Integer getVersion() {
+        return version;
+    }
 
     public UUID getIdCustomer() {
         return idCustomer;

@@ -2,10 +2,10 @@ package com.invillia.cadastrousuarioendereco.service;
 
 import com.invillia.cadastrousuarioendereco.entity.Address;
 import com.invillia.cadastrousuarioendereco.repository.AddressRepository;
+import com.invillia.cadastrousuarioendereco.response.ViaCepResponse;
 import com.invillia.cadastrousuarioendereco.utils.ValidarAddress;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -16,39 +16,46 @@ import java.util.UUID;
 public class AddressService {
 
     private AddressRepository addressRepository;
+    private ViaCepService viaCepService;
 
-    public AddressService(AddressRepository addressRepository) {
+    public AddressService(AddressRepository addressRepository, ViaCepService viaCepService) {
         this.addressRepository = addressRepository;
+        this.viaCepService = viaCepService;
+    }
+
+    private void verificarSeEnderecoExiste(String cep) throws Exception{
+        cep = cep.replaceAll("\\.", "").replaceAll("-", "");
+        ViaCepResponse response = this.viaCepService.call(cep);
+
+        if(null == response.getCep()){
+            throw new Exception("Cep inexistente");
+        }
     }
 
     public ResponseEntity salvarEndereco(Address address) {
         try {
+            this.verificarSeEnderecoExiste(address.getCep());
             ValidarAddress validarAddress = new ValidarAddress(address);
             validarAddress.validar();
             UUID uuid = UUID.randomUUID();
-            address.setIdAddres(uuid);
+            address.setIdAddress(uuid);
             return ResponseEntity.ok(addressRepository.save(address));
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(e);
         }
     }
 
     public ResponseEntity buscarEndereco(Integer ultimoIndice,Integer totalPorPagina, String filtro) {
         try {
-            Pageable pageable;
-            if(filtro.isEmpty()){
-                pageable = PageRequest.of(ultimoIndice, totalPorPagina);
-            } else {
-                pageable = PageRequest.of(ultimoIndice, totalPorPagina, Sort.by(filtro));
-            }
-            List<Address> addressList = addressRepository.findAll(pageable).stream().toList();
+            Pageable pageable = PageRequest.of(ultimoIndice, totalPorPagina);
+            List<Address> addressList = addressRepository.buscarPaginado(filtro, pageable).stream().toList();
             if (addressList.size() > 0) {
                 return ResponseEntity.ok(addressList);
             } else {
                 return ResponseEntity.noContent().build();
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(e);
         }
     }
 
@@ -61,7 +68,7 @@ public class AddressService {
                 return ResponseEntity.ok(address);
             }
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(e);
         }
     }
 
@@ -70,18 +77,22 @@ public class AddressService {
             Address address1 = addressRepository.save(address);
             return ResponseEntity.ok(address1);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError().body(e);
         }
 
     }
 
     public ResponseEntity deletarAddress(UUID uuid) {
-        addressRepository.deleteById(uuid);
-        Address address = addressRepository.findById(uuid).orElse(null);
-        if (null == address) {
-            return ResponseEntity.ok().build();
-        } else {
-            return ResponseEntity.status(304).build();
+        try {
+            addressRepository.deleteById(uuid);
+            Address address = addressRepository.findById(uuid).orElse(null);
+            if (null == address) {
+                return ResponseEntity.ok().build();
+            } else {
+                return ResponseEntity.status(304).build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e);
         }
     }
 }

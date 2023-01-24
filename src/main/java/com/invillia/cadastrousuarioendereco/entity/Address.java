@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.springframework.data.annotation.Version;
 
 import java.util.UUID;
 
@@ -13,7 +14,7 @@ public class Address {
 
     @Id
     @Column(name = "IDADDRES")
-    private UUID idAddres;
+    private UUID idAddress;
 
     @Column(name = "RUA")
     private String rua;
@@ -33,13 +34,19 @@ public class Address {
     @Column(name = "ESTADO")
     private String estado;
 
+    @Version
+    private Integer version;
 
-    public UUID getIdAddres() {
-        return idAddres;
+    public Integer getVersion() {
+        return version;
     }
 
-    public void setIdAddres(UUID idAddres) {
-        this.idAddres = idAddres;
+    public UUID getIdAddress() {
+        return idAddress;
+    }
+
+    public void setIdAddress(UUID idAddress) {
+        this.idAddress = idAddress;
     }
 
     public String getRua() {

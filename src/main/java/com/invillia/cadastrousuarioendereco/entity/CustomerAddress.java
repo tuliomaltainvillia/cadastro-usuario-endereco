@@ -4,6 +4,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import org.springframework.data.annotation.Version;
 
 import java.util.UUID;
 
@@ -23,6 +24,14 @@ public class CustomerAddress {
 
     @Column(name = "PRINCIPAL")
     private Boolean principal;
+
+    @Version
+    private Integer version;
+
+    public Integer getVersion() {
+        return version;
+    }
+
 
     public UUID getIdCustomerAddress() {
         return idCustomerAddress;

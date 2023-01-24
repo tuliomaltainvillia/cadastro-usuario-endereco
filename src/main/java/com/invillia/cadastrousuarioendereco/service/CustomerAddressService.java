@@ -22,34 +22,46 @@ public class CustomerAddressService {
         this.customerAddressRepository = customerAddressRepository;
     }
 
-    public CustomerAddress salvar(UUID idCustomer, UUID idAddress, Boolean principal) {
-        UUID uuid = UUID.randomUUID();
-        CustomerAddress customerAddress = new CustomerAddress();
-        customerAddress.setIdCustomerAddress(uuid);
-        customerAddress.setIdCustomer(idCustomer);
-        customerAddress.setIdAddress(idAddress);
-        customerAddress.setPrincipal(principal);
-        return customerAddressRepository.save(customerAddress);
+    public ResponseEntity salvar(UUID idCustomer, UUID idAddress, Boolean principal) {
+        try{
+            UUID uuid = UUID.randomUUID();
+            CustomerAddress customerAddress = new CustomerAddress();
+            customerAddress.setIdCustomerAddress(uuid);
+            customerAddress.setIdCustomer(idCustomer);
+            customerAddress.setIdAddress(idAddress);
+            customerAddress.setPrincipal(principal);
+            return ResponseEntity.ok(customerAddressRepository.save(customerAddress));
+        }catch (Exception e){
+            return ResponseEntity.internalServerError().body(e);
+        }
     }
 
 
-    public List<CustomerAddress> inserirVarios(List<CustomerAddress> customerAddressList) {
-        return customerAddressRepository.saveAll(customerAddressList);
+    public ResponseEntity inserirVarios(List<CustomerAddress> customerAddressList) {
+        try {
+            return ResponseEntity.ok(customerAddressRepository.saveAll(customerAddressList));
+        }catch (Exception e) {
+            return ResponseEntity.internalServerError().body(e);
+        }
     }
 
     public ResponseEntity buscarTodos(Integer ultimoIndice, Integer totalPorPagina, String filtro) {
 
-        Pageable pageable;
-        if(filtro.isEmpty()){
-            pageable = PageRequest.of(ultimoIndice, totalPorPagina);
-        } else {
-            pageable = PageRequest.of(ultimoIndice, totalPorPagina, Sort.by(filtro));
+        try {
+            Pageable pageable = PageRequest.of(ultimoIndice, totalPorPagina);;
+
+            List<CustomerAddress> customerAddressList = customerAddressRepository.buscarPaginado(filtro, pageable).stream().toList();
+            return ResponseEntity.ok(customerAddressList);
+        } catch (Exception e){
+            return ResponseEntity.internalServerError().body(e);
         }
-        List<CustomerAddress> customerAddressList = customerAddressRepository.findAll(pageable).stream().toList();
-        return ResponseEntity.ok(customerAddressList);
     }
 
     public ResponseEntity findAll(){
-        return ResponseEntity.ok(customerAddressRepository.findAll());
+        try {
+            return ResponseEntity.ok(customerAddressRepository.findAll());
+        } catch (Exception e){
+            return ResponseEntity.internalServerError().body(e);
+        }
     }
 }
